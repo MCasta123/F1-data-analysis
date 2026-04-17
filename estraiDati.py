@@ -3,11 +3,7 @@ import pandas as pd
 import fastf1
 import os
 import sys
-
-#configurazione cache locale
-CACHE_DIR = "./f1_cache"
-os.makedirs(CACHE_DIR, exist_ok=True)
-fastf1.Cache.enable_cache(CACHE_DIR)
+import csv
 
 #definizioni funzioni di base per estrarre i dati
 
@@ -65,7 +61,44 @@ def scegli_sessione(anno,gara):
         except:
             print('ERRORE, riprovare!')
 
+class F1DataExtractor:
+    def __init__(self,anno,gara,sessione,cartella_base='dati_csv'):
+        self.anno=anno
+        self.gara=gara
+        self.sessione=sessione
+        self.cartella_base=cartella_base
 
+        #configurazione cache locale
+        CACHE_DIR = "./f1_cache"
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        fastf1.Cache.enable_cache(CACHE_DIR)
+        #creazione directory
+        self.direc=os.path.join(self.cartella_base,str(self.anno),str(self.gara).replace(" ","_"),str(self.sessione).replace(" ","_"))
+        os.makedirs(self.direc,exist_ok=True)
+        #caricamento sessione
+        self.session=fastf1.get_session(self.anno,self.gara,self.sessione)
+        self.session.load()
+
+    def esporta_giri(self):
+        #accedo ai tempi sul giro
+        giri=self.session.laps
+        fileDestinazione=os.path.join(self.direc,'giri_completi.csv') 
+        titoli=['Driver','DriverNumber', 'LapNumber', 'LapTime', 'Sector1Time', 'Sector2Time', 'Sector3Time', 'Compound']
+        giri=giri[titoli].copy()
+        try:
+            giri['LapTime']=giri['LapTime'].dt.total_seconds()
+            giri['Sector1Time']=giri['Sector1Time'].dt.total_seconds()
+            giri['Sector2Time']=giri['Sector2Time'].dt.total_seconds()
+            giri['Sector3Time']=giri['Sector3Time'].dt.total_seconds()
+        except:
+            print('Attenzione ai dati')
+        with open(fileDestinazione,'w') as csvfile:
+            csvwriter=csv.writer(csvfile)
+            csvwriter.writerow(titoli)
+        giri.to_csv(fileDestinazione,index=False)     
+
+    def esporta_telemetria_pilota(self):
+        pass
 
 
         
@@ -79,5 +112,7 @@ annoScelto=scegli_anno()
 garaScelta=scegli_gara(anno=annoScelto)
 sessioneScelta=scegli_sessione(anno=annoScelto,gara=garaScelta)
 
-#session = fastf1.get_session(2021, 'Monza', 'Qualifying')
+estraiDati=F1DataExtractor(anno=annoScelto,gara=garaScelta,sessione=sessioneScelta)
+estraiDati.esporta_giri()
+
 
