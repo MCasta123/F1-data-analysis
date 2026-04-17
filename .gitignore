@@ -1,0 +1,44 @@
+# ========================
+# 1. Dati Formula 1
+# ========================
+# Ignora la cartella della cache
+f1_cache/
+
+# Ignora i CSV generati 
+dati_csv/
+*.csv
+
+# ========================
+# 2. Python
+# ========================
+# Ignora i file compilati di Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignora gli ambienti virtuali
+venv/
+env/
+.venv/
+
+# ========================
+# 3. C / C++
+# ========================
+# Ignora i file oggetto compilati
+*.o
+*.obj
+
+# Ignora gli eseguibili finali
+*.exe
+*.out
+*.app
+
+# Se in futuro userai CMake o IDE per C++
+build/
+.vscode/
+
+# ========================
+# 4. Sistema Operativo
+# ========================
+.DS_Store
+Thumbs.db
