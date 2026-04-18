@@ -151,14 +151,27 @@ class F1DataExtractor:
                     condizione=abbreviazionePiloti==pilota
                     risultati.loc[condizione,'BestLap']=bestLap
 
-        #risultati['BestLap']=risultati['BestLap'].dt.total_seconds()
         risultati=risultati.to_string(index=False)
         print(risultati)             
         
-
-        
-
-
+    def fastestLapPilota(self):
+        risultati=self.session.results
+        abbreviazionePiloti=risultati['Abbreviation']
+        colonne=['Abbreviation','FullName','BestLap']
+        risultati['BestLap']=None
+        risultati=risultati[colonne].copy()
+        for pilota in abbreviazionePiloti:
+            giriPilota=self.session.laps.pick_drivers(pilota)
+            if not giriPilota.empty:
+                bestLap=giriPilota.pick_fastest()
+                if bestLap is not None and pd.notna(bestLap['LapTime']):
+                    bestLap=bestLap['LapTime'].total_seconds()
+                    bestLap=formatta_tempo(bestLap)
+                    condizione=abbreviazionePiloti==pilota
+                    risultati.loc[condizione,'BestLap']=bestLap
+        risultati=risultati.sort_values(by='BestLap')
+        risultati=risultati.to_string(index=False)
+        print(risultati)
 
 
 
@@ -167,6 +180,6 @@ annoScelto=scegli_anno()
 garaScelta=scegli_gara(anno=annoScelto)
 sessioneScelta=scegli_sessione(anno=annoScelto,gara=garaScelta)
 estraiDati=F1DataExtractor(anno=annoScelto,gara=garaScelta,sessione=sessioneScelta)
-estraiDati.risultati_sessione()
+estraiDati.fastestLapPilota()
 
 
