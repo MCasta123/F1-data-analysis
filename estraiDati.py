@@ -2,16 +2,16 @@
 import pandas as pd
 import fastf1
 import os
-import sys
 import csv
 
+fastf1.set_log_level('ERROR')
 #definizioni funzioni di base per estrarre i dati
 
 def scegli_anno():
-    anniDisponibili=[2018,2019,2020,2021,2022,2023,2024]
+    anniDisponibili=[2018,2019,2020,2021,2022,2023,2024,2025,2026]
     print("="*50)
     while True:
-        anno=input('Che anno ti interessa? (2018-2024) ')
+        anno=input('Che anno ti interessa? (2018-2026) ')
         try:
             anno=int(anno)
             if anno in anniDisponibili:
@@ -61,7 +61,10 @@ def scegli_sessione(anno,gara):
         except:
             print('ERRORE, riprovare!')
 
+
+
 class F1DataExtractor:
+
     def __init__(self,anno,gara,sessione,cartella_base='dati_csv'):
         self.anno=anno
         self.gara=gara
@@ -72,31 +75,28 @@ class F1DataExtractor:
         CACHE_DIR = "./f1_cache"
         os.makedirs(CACHE_DIR, exist_ok=True)
         fastf1.Cache.enable_cache(CACHE_DIR)
-        #creazione directory
-        self.direc=os.path.join(self.cartella_base,str(self.anno),str(self.gara).replace(" ","_"),str(self.sessione).replace(" ","_"))
-        os.makedirs(self.direc,exist_ok=True)
         #caricamento sessione
         self.session=fastf1.get_session(self.anno,self.gara,self.sessione)
-        self.session.load()
-
-    def esporta_giri(self):
-        #accedo ai tempi sul giro
-        giri=self.session.laps
-        fileDestinazione=os.path.join(self.direc,'giri_completi.csv') 
-        titoli=['Driver','DriverNumber', 'LapNumber', 'LapTime', 'Sector1Time', 'Sector2Time', 'Sector3Time', 'Compound']
-        giri=giri[titoli].copy()
+        print('Loading...')
         try:
+            self.session.load()
+        except:
+            print('Si è verificato un errore, è possibile che i dati di questa sessione non siano ancora stati caricati')
+
+
+
+    def printLapOfPilot(self,pilota):
+    #accedo ai tempi sul giro
+        giri=self.session.laps
+        try:
+            
             giri['LapTime']=giri['LapTime'].dt.total_seconds()
             giri['Sector1Time']=giri['Sector1Time'].dt.total_seconds()
             giri['Sector2Time']=giri['Sector2Time'].dt.total_seconds()
             giri['Sector3Time']=giri['Sector3Time'].dt.total_seconds()
         except:
             print('Attenzione ai dati')
-        with open(fileDestinazione,'w') as csvfile:
-            csvwriter=csv.writer(csvfile)
-            csvwriter.writerow(titoli)
-        giri.to_csv(fileDestinazione,index=False)     
-
+        
     def esporta_telemetria_pilota(self):
         pass
 
@@ -113,6 +113,6 @@ garaScelta=scegli_gara(anno=annoScelto)
 sessioneScelta=scegli_sessione(anno=annoScelto,gara=garaScelta)
 
 estraiDati=F1DataExtractor(anno=annoScelto,gara=garaScelta,sessione=sessioneScelta)
-estraiDati.esporta_giri()
+
 
 
