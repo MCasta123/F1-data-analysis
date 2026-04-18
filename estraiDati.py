@@ -62,7 +62,6 @@ def scegli_sessione(anno,gara):
             print('ERRORE, riprovare!')
 
 
-
 class F1DataExtractor:
 
     def __init__(self,anno,gara,sessione,cartella_base='dati_csv'):
@@ -83,6 +82,17 @@ class F1DataExtractor:
         except:
             print('Si è verificato un errore, è possibile che i dati di questa sessione non siano ancora stati caricati')
 
+    def __scegli_pilota(self):
+        risultati=self.session.results
+        colonne=['BroadcastName','Abbreviation']
+        listaPiloti=risultati[colonne]
+        print('La lista di piloti che partecipano a questa sessione è ')
+        print(listaPiloti)
+        print('-'*75)
+        pilotaScelto=input('Inserire l\'abbreviazione del pilota che si vuole scegliere: ')
+        pilotaScelto=pilotaScelto.upper()
+        return pilotaScelto
+
     def __estraiGiriSessione(self):
         #accedo ai tempi sul giro
         giri=self.session.laps
@@ -96,8 +106,10 @@ class F1DataExtractor:
             print('Attenzione ai dati')
         return giri
 
-    def printLapOfPilot(self,pilota):
-        pass
+    def printLapOfPilot(self):
+        pilota=self.__scegli_pilota()
+        giri=self.__estraiGiriSessione()
+      
         
     def esporta_telemetria_pilota(self):
         pass
@@ -113,8 +125,7 @@ class F1DataExtractor:
 annoScelto=scegli_anno()
 garaScelta=scegli_gara(anno=annoScelto)
 sessioneScelta=scegli_sessione(anno=annoScelto,gara=garaScelta)
-
 estraiDati=F1DataExtractor(anno=annoScelto,gara=garaScelta,sessione=sessioneScelta)
-
+estraiDati.printLapOfPilot()
 
 
