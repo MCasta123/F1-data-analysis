@@ -61,6 +61,13 @@ def scegli_sessione(anno,gara):
         except:
             print('ERRORE, riprovare!')
 
+def formatta_tempo(secondi):
+            if pd.isna(secondi): # Se il pilota non ha un tempo (es. giro di rientro)
+                return "Box/Out"
+            minuti = int(secondi // 60)
+            sec = secondi % 60
+            # Formatta con 2 cifre per i secondi e 3 per i millesimi (es. 05.123)
+            return f"{minuti}:{sec:06.3f}"
 
 class F1DataExtractor:
 
@@ -108,8 +115,24 @@ class F1DataExtractor:
 
     def printLapOfPilot(self):
         pilota=self.__scegli_pilota()
-        giri=self.__estraiGiriSessione()
-      
+        giriPilota=self.session.laps.pick_drivers(pilota)
+        try:
+            
+            giriPilota['LapTime']=giriPilota['LapTime'].dt.total_seconds()
+            giriPilota['Sector1Time']=giriPilota['Sector1Time'].dt.total_seconds()
+            giriPilota['Sector2Time']=giriPilota['Sector2Time'].dt.total_seconds()
+            giriPilota['Sector3Time']=giriPilota['Sector3Time'].dt.total_seconds()
+
+            giriPilota['LapTime'] = giriPilota['LapTime'].apply(formatta_tempo)
+            giriPilota['Sector1Time'] = giriPilota['Sector1Time'].apply(formatta_tempo)
+            giriPilota['Sector2Time'] = giriPilota['Sector2Time'].apply(formatta_tempo)
+            giriPilota['Sector3Time'] = giriPilota['Sector3Time'].apply(formatta_tempo)
+        except:
+            print('Attenzione ai dati')
+
+        colonne=['Driver','Stint','LapTime','Sector1Time','Sector2Time','Sector3Time','Compound','TyreLife']
+        giriPilota=giriPilota[colonne].to_string(index=False)
+        print(giriPilota)
         
     def esporta_telemetria_pilota(self):
         pass
