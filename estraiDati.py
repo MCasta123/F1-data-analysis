@@ -136,7 +136,7 @@ class F1DataExtractor:
         
     def risultati_sessione(self):
         risultati=self.session.results
-        colonne=['Position','FullName','Abbreviation','DriverNumber','TeamName','Points','BestLap']
+        colonne=['Position','FullName','Abbreviation','DriverNumber','TeamName','Points','Laps','BestLap']
         risultati['BestLap']=None
         risultati=risultati[colonne].copy()
         abbreviazionePiloti=risultati['Abbreviation']    
@@ -152,8 +152,8 @@ class F1DataExtractor:
                     risultati.loc[condizione,'BestLap']=bestLap
 
         risultati=risultati.to_string(index=False)
-        print(risultati)             
-        
+        print(risultati)
+
     def fastestLapPilota(self):
         risultati=self.session.results
         abbreviazionePiloti=risultati['Abbreviation']
@@ -180,6 +180,6 @@ annoScelto=scegli_anno()
 garaScelta=scegli_gara(anno=annoScelto)
 sessioneScelta=scegli_sessione(anno=annoScelto,gara=garaScelta)
 estraiDati=F1DataExtractor(anno=annoScelto,gara=garaScelta,sessione=sessioneScelta)
-estraiDati.fastestLapPilota()
+estraiDati.risultati_sessione()
 
 
