@@ -83,10 +83,8 @@ class F1DataExtractor:
         except:
             print('Si è verificato un errore, è possibile che i dati di questa sessione non siano ancora stati caricati')
 
-
-
-    def printLapOfPilot(self,pilota):
-    #accedo ai tempi sul giro
+    def __estraiGiriSessione(self):
+        #accedo ai tempi sul giro
         giri=self.session.laps
         try:
             
@@ -96,6 +94,10 @@ class F1DataExtractor:
             giri['Sector3Time']=giri['Sector3Time'].dt.total_seconds()
         except:
             print('Attenzione ai dati')
+        return giri
+
+    def printLapOfPilot(self,pilota):
+        pass
         
     def esporta_telemetria_pilota(self):
         pass
