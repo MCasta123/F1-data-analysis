@@ -2,8 +2,8 @@
 import pandas as pd
 import fastf1
 import os
-#import matplotlib.pyplot as plt
-#import fastf1.plotting
+import matplotlib.pyplot as plt
+import fastf1.plotting
 
 fastf1.set_log_level('ERROR')
 #definizioni funzioni di base per estrarre i dati
@@ -108,7 +108,6 @@ class F1DataExtractor:
             else:
                 print('Scelta errata, riprovare')
         
-
     def __estraiGiriSessione(self):
         #accedo ai tempi sul giro
         giri=self.session.laps
@@ -182,12 +181,27 @@ class F1DataExtractor:
         risultati=risultati.to_string(index=False)
         print(risultati)
     
-    def telemetriaPiloti(self):
-        risultati=self.session.results
-        pilotiNellaSessione=risultati['Abbreviation'].copy()
-        pilotiNellaSessione=list(pilotiNellaSessione)
+    def __estraiTelemetriaPilota(self,pilota):
+        giriPilota=self.session.laps.pick_drivers(pilota)
+        if giriPilota.empty:
+            print(f"Attenzione: Nessun dato in pista per {pilota}.")
+            return None
+        giroVeloce=giriPilota.pick_fastest()
+        if giroVeloce is None or pd.isna(giroVeloce['LapTime']):
+            print(f'Il pilota {pilota} non ha giri validi in questa sessione')
+        try:
+            telemetria=giroVeloce.get_telemetry()
+        except Exception as e:
+            print(f"Errore durante il download della telemetria: {e}")
+            return None
+        colonne_utili = ['Distance', 'Speed', 'Throttle', 'Brake', 'nGear', 'RPM']
+        telemetria_pulita = telemetria[colonne_utili].copy()
+        return telemetria_pulita
 
-        fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme=None)
+
+    def stampaTelemetria(self):
+        self.__estraiTelemetriaPilota('LEC')
+        """ fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme=None)
         while True:
             numPiloti=input('Scegli di quanti piloti vedere la telemetria: (max 4) ')
             try:
@@ -198,17 +212,16 @@ class F1DataExtractor:
                     break
             except:
                 print('Inserire un numero')
+        
         pilotiScelti=[]
-        i=0
         pilota=self.__scegli_pilota()
         pilotiScelti.append(pilota)
-
-        while i+1<numPiloti and numPiloti!=1:
-            pilota=input(f'Scegli il pilota {i+1}: ')
-            if pilota in pilotiScelti:
-                print('Pilota già scelto')
-            else:
-                pilotiScelti.append(pilota)
+        i=0
+        while numPiloti>1 and i<numPiloti-1:
+            pilota=self.__scegli_pilota(stampa_lista_piloti=False)
+            pilotiScelti.append(pilota)
+            i=i+1 """
+        
 
 
 
@@ -219,6 +232,6 @@ annoScelto=scegli_anno()
 garaScelta=scegli_gara(anno=annoScelto)
 sessioneScelta=scegli_sessione(anno=annoScelto,gara=garaScelta)
 estraiDati=F1DataExtractor(anno=annoScelto,gara=garaScelta,sessione=sessioneScelta)
-#estraiDati.telemetriaPiloti()
-estraiDati.printLapOfPilot()
+estraiDati.stampaTelemetria()
+
 
