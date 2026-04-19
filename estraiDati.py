@@ -2,7 +2,8 @@
 import pandas as pd
 import fastf1
 import os
-import csv
+#import matplotlib.pyplot as plt
+#import fastf1.plotting
 
 fastf1.set_log_level('ERROR')
 #definizioni funzioni di base per estrarre i dati
@@ -89,16 +90,24 @@ class F1DataExtractor:
         except:
             print('Si è verificato un errore, è possibile che i dati di questa sessione non siano ancora stati caricati')
 
-    def __scegli_pilota(self):
+    def __scegli_pilota(self,stampa_lista_piloti=True):
         risultati=self.session.results
+        pilotiNellaSessione=risultati['Abbreviation'].copy()
+        pilotiNellaSessione=list(pilotiNellaSessione)
         colonne=['BroadcastName','Abbreviation']
         listaPiloti=risultati[colonne]
-        print('La lista di piloti che partecipano a questa sessione è ')
-        print(listaPiloti)
-        print('-'*75)
-        pilotaScelto=input('Inserire l\'abbreviazione del pilota che si vuole scegliere: ')
-        pilotaScelto=pilotaScelto.upper()
-        return pilotaScelto
+        if stampa_lista_piloti:
+            print('La lista di piloti che partecipano a questa sessione è ')
+            print(listaPiloti)
+            print('-'*75)
+        while True:
+            pilotaScelto=input('Inserire l\'abbreviazione del pilota che si vuole scegliere: ')
+            pilotaScelto=pilotaScelto.upper()
+            if pilotaScelto in pilotiNellaSessione:
+                return pilotaScelto
+            else:
+                print('Scelta errata, riprovare')
+        
 
     def __estraiGiriSessione(self):
         #accedo ai tempi sul giro
@@ -115,7 +124,7 @@ class F1DataExtractor:
 
     def printLapOfPilot(self):
         pilota=self.__scegli_pilota()
-        giriPilota=self.session.laps.pick_drivers(pilota)
+        giriPilota=self.session.laps.pick_drivers(pilota).copy()
         try:
             
             giriPilota['LapTime']=giriPilota['LapTime'].dt.total_seconds()
@@ -172,6 +181,36 @@ class F1DataExtractor:
         risultati=risultati.sort_values(by='BestLap')
         risultati=risultati.to_string(index=False)
         print(risultati)
+    
+    def telemetriaPiloti(self):
+        risultati=self.session.results
+        pilotiNellaSessione=risultati['Abbreviation'].copy()
+        pilotiNellaSessione=list(pilotiNellaSessione)
+
+        fastf1.plotting.setup_mpl(mpl_timedelta_support=True, color_scheme=None)
+        while True:
+            numPiloti=input('Scegli di quanti piloti vedere la telemetria: (max 4) ')
+            try:
+                numPiloti=int(numPiloti)
+                if numPiloti<=0 or numPiloti>4:
+                    print('Inserire un numero corretto')
+                else:
+                    break
+            except:
+                print('Inserire un numero')
+        pilotiScelti=[]
+        i=0
+        pilota=self.__scegli_pilota()
+        pilotiScelti.append(pilota)
+
+        while i+1<numPiloti and numPiloti!=1:
+            pilota=input(f'Scegli il pilota {i+1}: ')
+            if pilota in pilotiScelti:
+                print('Pilota già scelto')
+            else:
+                pilotiScelti.append(pilota)
+
+
 
 
 
@@ -180,6 +219,6 @@ annoScelto=scegli_anno()
 garaScelta=scegli_gara(anno=annoScelto)
 sessioneScelta=scegli_sessione(anno=annoScelto,gara=garaScelta)
 estraiDati=F1DataExtractor(anno=annoScelto,gara=garaScelta,sessione=sessioneScelta)
-estraiDati.risultati_sessione()
-
+#estraiDati.telemetriaPiloti()
+estraiDati.printLapOfPilot()
 
